@@ -3,7 +3,7 @@ import Image from "next/image";
 import styles from "@/styles/Home.module.css";
 import { useCallback, useEffect, useState } from "react";
 import { useAccount, useContractRead, useContractWrite, useNetwork, useSwitchNetwork } from "wagmi";
-import { erc20abi } from "../../../abis/Erc20TokenAbi"
+import { erc20abi } from "../../abis/erc20TokenAbi"
 import Link from "next/link";
 import React from "react";
 import MintModal from "./MintModal";
