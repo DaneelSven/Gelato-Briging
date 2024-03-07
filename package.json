@@ -1,0 +1,36 @@
+{
+	"name": "swapping",
+	"version": "1.0.0",
+	"description": "next.js application for swapping on optimism and arbitrum",
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint"
+	},
+	"author": "sven4696@gmail.com",
+	"license": "ISC",
+	"dependencies": {
+		"@openzeppelin/contracts": "^5.0.0",
+		"@types/node": "18.18.9",
+		"@types/react": "18.2.37",
+		"@types/react-dom": "18.2.15",
+		"@walletconnect/web3-provider": "^1.8.0",
+		"@web3-react/core": "^8.2.3",
+		"@web3modal/ethers5": "^3.3.2",
+		"@web3modal/wagmi": "3.3.2",
+		"dotenv": "^16.3.1",
+		"eslint": "8.54.0",
+		"eslint-config-next": "13.5.6",
+		"ethers": "^5.7.2",
+		"next": "13.5.6",
+		"react": "18.2.0",
+		"react-dom": "18.2.0",
+		"sharp": "^0.33.0",
+		"typescript": "5.2.2",
+		"viem": "^1.13.1",
+		"wagmi": "^1.4.2",
+		"web3": "^4.2.2",
+		"web3modal": "^1.9.12"
+	}
+}
