@@ -2,17 +2,22 @@ import Head from "next/head";
 import Image from "next/image";
 import styles from "@/styles/Home.module.css";
 import { useCallback, useEffect, useState } from "react";
-import { useAccount, useContractRead, useContractWrite, useNetwork, useSwitchNetwork } from "wagmi";
-import { erc20abi } from "../../abis/erc20TokenAbi"
+import {
+  useAccount,
+  useContractWrite,
+  useNetwork,
+  useSwitchNetwork,
+} from "wagmi";
+import { erc20Abi2771 } from "../../abis/erc20TokenAbi2771";
 import Link from "next/link";
 import React from "react";
 import MintModal from "./MintModal";
 import BurnModal from "./BurnModal";
-import {ethers} from "ethers";
+import { ethers } from "ethers";
+import { GelatoRelay, CallWithERC2771Request } from "@gelatonetwork/relay-sdk";
 
 export default function Home() {
-  const [isNetworkSwitchHighlighted, setIsNetworkSwitchHighlighted] =
-    useState(false);
+  const [isNetworkSwitchHighlighted, setIsNetworkSwitchHighlighted] = useState(false);
   const [isConnectHighlighted, setIsConnectHighlighted] = useState(false);
   const [showSwap, setshowSwap] = useState(false);
   const { address } = useAccount();
@@ -24,45 +29,53 @@ export default function Home() {
   const [showMintModal, setShowMintModal] = useState(false);
   const [showBurnModal, setShowBurnModal] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
-  const [recentAction, setRecentAction] = useState(""); // Add this state variable
+  const [recentAction, setRecentAction] = useState("");
   const [mintTransactionId, setMintTransactionId] = useState("");
   const [burnTransactionId, setBurnTransactionId] = useState("");
   const [bannerText, setBannerText] = useState("Your dynamic banner text here");
 
-  const erc20AddressArbitrum = process.env.NEXT_PUBLIC_ERC20_ADDRESS_ARBITRUM as `0x${string}`;
-  const erc20AddressOptimism = process.env.NEXT_PUBLIC_ERC20_ADDRESS_OPTIMISM as `0x${string}`;
+  const erc20AddressArbitrum = process.env
+    .NEXT_PUBLIC_ERC20_ADDRESS_ARBITRUM as `0x${string}`;
+  const erc20AddressOptimism = process.env
+    .NEXT_PUBLIC_ERC20_ADDRESS_OPTIMISM as `0x${string}`;
 
-  const erc20ContractAbitrumUrl = `https://sepolia.arbiscan.io/address/${erc20AddressArbitrum}#transaction`
-  const erc20ContractOptimismUrl = `https://sepolia-optimism.etherscan.io/address/${erc20AddressOptimism}#transaction`
+  const erc20ContractAbitrumUrl = `https://sepolia.arbiscan.io/address/${erc20AddressArbitrum}#transaction`;
+  const erc20ContractOptimismUrl = `https://sepolia-optimism.etherscan.io/address/${erc20AddressOptimism}#transaction`;
 
-  const [connectedSmartContractAddress, setConnectedSmartContractAddress] = useState(erc20AddressArbitrum)
+  const [connectedSmartContractAddress, setConnectedSmartContractAddress] =
+    useState(erc20AddressArbitrum);
 
-  console.log("connected smart contract address", connectedSmartContractAddress)
-
-
-  const arbitrumChainId = Number(process.env.NEXT_PUBLIC_ARBITRUM_CHAIN_ID)
-  const optimismChainId = Number(process.env.NEXT_PUBLIC_OPTIMISM_CHAIN_ID)
+  const arbitrumChainId = Number(process.env.NEXT_PUBLIC_ARBITRUM_CHAIN_ID);
+  const optimismChainId = Number(process.env.NEXT_PUBLIC_OPTIMISM_CHAIN_ID);
 
   // RPC URLs for Arbitrum and Optimism networks
-  const arbitrumRpcUrl = process.env.NEXT_PUBLIC_ARBITRUM_RPC_URL
-  const optimismRpcUrl = process.env.NEXT_PUBLIC_OPTIMISM_RPC_URL
+  const arbitrumRpcUrl = process.env.NEXT_PUBLIC_ARBITRUM_RPC_URL;
+  const optimismRpcUrl = process.env.NEXT_PUBLIC_OPTIMISM_RPC_URL;
 
   // Setup providers
-  const arbitrumProvider = new ethers.providers.JsonRpcProvider(arbitrumRpcUrl);
-  const optimismProvider = new ethers.providers.JsonRpcProvider(optimismRpcUrl);
+  const arbitrumProvider = new ethers.JsonRpcProvider(arbitrumRpcUrl);
+  const optimismProvider = new ethers.JsonRpcProvider(optimismRpcUrl);
   // Initialize contract instances for each network
-  const contractArbitrum = new ethers.Contract(erc20AddressArbitrum, erc20abi, arbitrumProvider);
-  const contractOptimism = new ethers.Contract(erc20AddressOptimism, erc20abi, optimismProvider);
+  const contractArbitrum = new ethers.Contract(
+    erc20AddressArbitrum,
+    erc20Abi2771,
+    arbitrumProvider
+  );
 
-  
+  const contractOptimism = new ethers.Contract(
+    erc20AddressOptimism,
+    erc20Abi2771,
+    optimismProvider
+  );
+
   function getEtherscanUrl(chainId: number, txHash: any) {
     if (chainId === undefined) {
       return ""; // or set a default value
     }
 
     const baseUrl: any = {
-      421614: "https://sepolia.arbiscan.io/tx/", // Polygon Mainnet
-      11155420: "https://sepolia-optimism.etherscan.io/tx/", // Mumbai Testnet (Polygon)
+      421614: "https://sepolia.arbiscan.io/tx/",
+      11155420: "https://sepolia-optimism.etherscan.io/tx/",
     };
 
     return baseUrl[chainId as number]
@@ -70,20 +83,19 @@ export default function Home() {
       : "";
   }
 
-
+  // add both contract addresses here 2771 and normal
   useEffect(() => {
-
     const promptSwitchNetwork = async () => {
       if (chain?.id === arbitrumChainId) {
         try {
-          setConnectedSmartContractAddress(erc20AddressArbitrum)
+          setConnectedSmartContractAddress(erc20AddressArbitrum);
         } catch (switchError) {
           console.error("Error switching network in MetaMask:", switchError);
         }
       }
       if (chain?.id === optimismChainId) {
         try {
-          setConnectedSmartContractAddress(erc20AddressOptimism)
+          setConnectedSmartContractAddress(erc20AddressOptimism);
         } catch (switchError) {
           console.error("Error switching network in MetaMask:", switchError);
         }
@@ -103,38 +115,21 @@ export default function Home() {
     setshowSwap(true);
   };
 
-
-  const { data: mintData, write: writeMint } = useContractWrite({
+  const { write: writeMint } = useContractWrite({
     address: connectedSmartContractAddress,
-    abi: erc20abi,
+    abi: erc20Abi2771,
     functionName: "mint",
   });
 
-  const { data: burnData, write: writeBurn, isSuccess: isBurnSuccess } = useContractWrite({
-    address: connectedSmartContractAddress,
-    abi: erc20abi,
-    functionName: "burn",
-    onSuccess(data) {
-      console.log('Burn transaction successful', data);
-      setBannerText(`Tx Id: ${data?.hash}`);
-      setBurnTransactionId(data.hash)
-      setShowBanner(true);
-      getAllBalance();
-    },
-  });
-
   const getAllBalance = useCallback(async () => {
-
-    const balanceArbitrum = await contractArbitrum.balanceOf(address)
+    const balanceArbitrum = await contractArbitrum.balanceOf(address);
     const balanceOptimism = await contractOptimism.balanceOf(address);
-
-
 
     if (balanceArbitrum && balanceOptimism) {
       setshowSwap(true);
       setNetworkBalance(true);
-      setArbitrumBalance(ethers.utils.formatEther(balanceArbitrum.toString()))
-      setOptimismBalance(ethers.utils.formatEther(balanceOptimism.toString()))
+      setArbitrumBalance(ethers.formatEther(balanceArbitrum.toString()));
+      setOptimismBalance(ethers.formatEther(balanceOptimism.toString()));
     } else {
       setshowSwap(false);
       setNetworkBalance(false);
@@ -144,23 +139,45 @@ export default function Home() {
   const handleMint = async (amount: string) => {
     try {
       // Call the contract function and wait for the result
-      const result = writeMint({
+      writeMint({
         args: [address, amount],
       });
-    } catch (error) {
-
-    }
+    } catch (error) { }
   };
 
   const handleBurn = async (amount: string) => {
     try {
-      // Call the contract function and wait for the result
-      const result = writeBurn({
-        args: [amount],
-      });
-    } catch (error) {
+      const provider = new ethers.BrowserProvider(window.ethereum as any);
+      const signer = await provider.getSigner();
+      const user = await signer.getAddress();
+      const contract = new ethers.Contract(
+        connectedSmartContractAddress,
+        erc20Abi2771,
+        signer
+      );
 
-    }
+      const formattedAmount = ethers.parseUnits(amount, 18)
+
+      const { data } = await contract.burn.populateTransaction(formattedAmount);
+      const chainId = (await provider.getNetwork()).chainId;
+
+      // Populate a relay request
+      const request: CallWithERC2771Request = {
+        chainId: chainId,
+        target: connectedSmartContractAddress,
+        data: data,
+        user: user,
+      };
+
+      const relay = new GelatoRelay();
+      const relayResponse = await relay.sponsoredCallERC2771(
+        request,
+        // @ts-ignore
+        provider,
+        "eGWFYP7yw_zJ8Y1beN1wJuDvuYWbsYONLjEWsqDLfQE_"
+      );
+      console.log("relayseponse", relayResponse.taskId);
+    } catch (error) { }
   };
 
   const getCurrentTransactionId = () => {
@@ -174,8 +191,8 @@ export default function Home() {
     }
   };
 
-    // Use this function to get the current transaction ID for display
-    const currentTransactionId = getCurrentTransactionId();
+  // Use this function to get the current transaction ID for display
+  const currentTransactionId = getCurrentTransactionId();
 
   return (
     <>
@@ -229,43 +246,45 @@ export default function Home() {
         {showSwap ? (
           <div>
             <div className={styles.explenation}>
-              This project demonstrates the process of bridging an ERC20 token between two testnets by leveraging the Gelato Web3 Function, Gelato Relay, and MockERC20 system.
-              By integrating Gelato's tools, the project showcases a practical implementation of cross-chain operations within the Ethereum ecosystem,
-              highlighting the potential for enhanced interoperability and user engagement in decentralized platforms.
+              This project demonstrates the process of bridging an ERC20 token
+              between two testnets by leveraging the Gelato Web3 Function,
+              Gelato Relay, and MockERC20 system. By integrating Gelato's tools,
+              the project showcases a practical implementation of cross-chain
+              operations within the Ethereum ecosystem, highlighting the
+              potential for enhanced interoperability and user engagement in
+              decentralized platforms.
             </div>
 
             <div className={styles.explenationSteps}>
-            To showcase bidirectional bridging between Arbitrum and Optimism, tokens burned on one network will automatically be mirrored on the opposite network, 
-            allowing the same amount of tokens to be received without incurring any costs for the minting transaction.
+              To showcase bidirectional bridging between Arbitrum and Optimism,
+              tokens burned on one network will automatically be mirrored on the
+              opposite network, allowing the same amount of tokens to be
+              received without incurring any costs for the minting transaction.
             </div>
 
             <div className={styles.balance}>
-              <div>
-                Arbitrum Balance: {arbitrumBalance}
-              </div>
-              <div>
-                Optimism Balance: {optimismBalance}
-              </div>
-
+              <div>Arbitrum Balance: {arbitrumBalance}</div>
+              <div>Optimism Balance: {optimismBalance}</div>
 
               {showBanner && (
-                  <div
-                    className={`${styles.banner} ${!showBanner ? "hide" : ""}`}>
-                    {/* Show spinner when transaction is in progress */}
-                    {currentTransactionId ? (
-                      <a
-                        href={getEtherscanUrl(chain!.id, currentTransactionId)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.bannerText}
-                      >
-                        {bannerText}
-                      </a>
-                    ) : (
-                      <span className={`${styles.bannerText}`}>{bannerText}</span>
-                    )}
-                  </div>
-                )}
+                <div
+                  className={`${styles.banner} ${!showBanner ? "hide" : ""}`}
+                >
+                  {/* Show spinner when transaction is in progress */}
+                  {currentTransactionId ? (
+                    <a
+                      href={getEtherscanUrl(chain!.id, currentTransactionId)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.bannerText}
+                    >
+                      {bannerText}
+                    </a>
+                  ) : (
+                    <span className={`${styles.bannerText}`}>{bannerText}</span>
+                  )}
+                </div>
+              )}
             </div>
             <div className={styles.swapGrid}>
               <div>
@@ -291,7 +310,7 @@ export default function Home() {
                   <span></span>
                   <span></span>
                   <span></span>
-                  Burn Tokens
+                  Gassless Burn
                 </a>
               </div>
               <MintModal

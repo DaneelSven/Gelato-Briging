@@ -1,4 +1,3 @@
-// TradeModal.jsx
 import React, { useState } from 'react';
 import styles from "@/styles/Home.module.css";
 
@@ -19,9 +18,6 @@ const MintModal: React.FC<InputModalProps> = ({ isOpen, onClose, onTrade }) => {
         setTokenId(value);
         setIsTokenIdValid(isValid);
     };
-    
-
-    
 
     const handleSubmit = () => {
         if (isTokenIdValid) {
@@ -38,7 +34,7 @@ const MintModal: React.FC<InputModalProps> = ({ isOpen, onClose, onTrade }) => {
                 <h2 className={styles.modalTitle}>Mint Tokens</h2>
 
                 <div className={styles.errorText}>
-                    Please enter a valid positve amount (0, 1, or 2).
+                    Please enter a valid positve amount (1,2 or more).
                 </div>
                 <input
                     className={styles.input}

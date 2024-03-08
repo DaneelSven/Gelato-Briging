@@ -1,4 +1,3 @@
-// TradeModal.jsx
 import React, { useState } from 'react';
 import styles from "@/styles/Home.module.css";
 
@@ -18,8 +17,7 @@ const BurnModal: React.FC<InputModalProps> = ({ isOpen, onClose, onTrade }) => {
         const isValid = /^[1-9]\d*$/.test(value);
         setTokenId(value);
         setIsTokenIdValid(isValid);
-    };
-    
+    };  
 
     const handleSubmit = () => {
         if (isTokenIdValid) {
@@ -41,7 +39,7 @@ const BurnModal: React.FC<InputModalProps> = ({ isOpen, onClose, onTrade }) => {
                 <input
                     className={styles.input}
                     type="text"
-                    placeholder="Token ID (0, 1, or 2)"
+                    placeholder="Token ID (1,2 or more)"
                     value={tokenId}
                     onChange={handleTokenIdChange}
                 />
