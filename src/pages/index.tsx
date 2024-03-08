@@ -123,8 +123,10 @@ export default function Home() {
 
   const getAllBalance = useCallback(async () => {
     const balanceArbitrum = await contractArbitrum.balanceOf(address);
+    console.log("balance arb", balanceArbitrum);
+  
     const balanceOptimism = await contractOptimism.balanceOf(address);
-
+    console.log("balance op", balanceOptimism)
     if (balanceArbitrum && balanceOptimism) {
       setshowSwap(true);
       setNetworkBalance(true);
@@ -147,6 +149,7 @@ export default function Home() {
 
   const handleBurn = async (amount: string) => {
     try {
+      
       const provider = new ethers.BrowserProvider(window.ethereum as any);
       const signer = await provider.getSigner();
       const user = await signer.getAddress();
@@ -243,7 +246,6 @@ export default function Home() {
         </div>
       </header>
       <main className={styles.main}>
-        {showSwap ? (
           <div>
             <div className={styles.explenation}>
               This project demonstrates the process of bridging an ERC20 token
@@ -297,7 +299,7 @@ export default function Home() {
                   <span></span>
                   <span></span>
                   <span></span>
-                  Mint Tokens
+                  Admin Mint
                 </a>
               </div>
               <div>
@@ -325,26 +327,6 @@ export default function Home() {
               />
             </div>
           </div>
-        ) : (
-          <div
-            onMouseOver={handleMouseOverDopeBears}
-            className={`${styles.flickeringText} ${styles.welcomeContainer} ${showSwap ? styles.fadeOut : ""
-              }`}
-          >
-            <p>Welcome To Swapping Mastery Lets see your Tokens</p>
-
-            {hasNetworkBalance ? (
-              <p>lets go.</p>
-            ) : (
-              <div className={styles.welcomeMessage}>
-                <p>
-                  Looks Like you do not have any Tokens on this Network, change
-                  network or go ahead and mint some Tokens
-                </p>
-              </div>
-            )}
-          </div>
-        )}
       </main>
     </>
   );
