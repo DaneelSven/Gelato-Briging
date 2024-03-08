@@ -110,10 +110,7 @@ export default function Home() {
     setIsConnectHighlighted(false);
   };
 
-  const handleMouseOverDopeBears = () => {
-    getAllBalance();
-    setshowSwap(true);
-  };
+
 
   const { write: writeMint } = useContractWrite({
     address: connectedSmartContractAddress,
@@ -123,19 +120,12 @@ export default function Home() {
 
   const getAllBalance = useCallback(async () => {
     const balanceArbitrum = await contractArbitrum.balanceOf(address);
-    console.log("balance arb", balanceArbitrum);
-  
     const balanceOptimism = await contractOptimism.balanceOf(address);
     console.log("balance op", balanceOptimism)
-    if (balanceArbitrum && balanceOptimism) {
-      setshowSwap(true);
-      setNetworkBalance(true);
-      setArbitrumBalance(ethers.formatEther(balanceArbitrum.toString()));
-      setOptimismBalance(ethers.formatEther(balanceOptimism.toString()));
-    } else {
-      setshowSwap(false);
-      setNetworkBalance(false);
-    }
+    // Convert balances to a readable format, defaulting to "0" if undefined or null
+    setArbitrumBalance(balanceArbitrum ? ethers.formatEther(balanceArbitrum) : "0");
+    setOptimismBalance(balanceOptimism ? ethers.formatEther(balanceOptimism) : "0");
+
   }, []);
 
   const handleMint = async (amount: string) => {
@@ -149,7 +139,7 @@ export default function Home() {
 
   const handleBurn = async (amount: string) => {
     try {
-      
+
       const provider = new ethers.BrowserProvider(window.ethereum as any);
       const signer = await provider.getSigner();
       const user = await signer.getAddress();
@@ -180,6 +170,8 @@ export default function Home() {
         "eGWFYP7yw_zJ8Y1beN1wJuDvuYWbsYONLjEWsqDLfQE_"
       );
       console.log("relayseponse", relayResponse.taskId);
+
+      getAllBalance();
     } catch (error) { }
   };
 
@@ -193,6 +185,15 @@ export default function Home() {
         return "";
     }
   };
+
+  useEffect(() => {
+    // Ensure there's a connected address before fetching balances
+    if (address) {
+      getAllBalance();
+    }
+  }, [getAllBalance, address]); // This will call getAllBalance when the component mounts and anytime 'address' changes.
+
+
 
   // Use this function to get the current transaction ID for display
   const currentTransactionId = getCurrentTransactionId();
@@ -246,87 +247,91 @@ export default function Home() {
         </div>
       </header>
       <main className={styles.main}>
-          <div>
-            <div className={styles.explenation}>
-              This project demonstrates the process of bridging an ERC20 token
-              between two testnets by leveraging the Gelato Web3 Function,
-              Gelato Relay, and MockERC20 system. By integrating Gelato's tools,
-              the project showcases a practical implementation of cross-chain
-              operations within the Ethereum ecosystem, highlighting the
-              potential for enhanced interoperability and user engagement in
-              decentralized platforms.
-            </div>
-
-            <div className={styles.explenationSteps}>
-              To showcase bidirectional bridging between Arbitrum and Optimism,
-              tokens burned on one network will automatically be mirrored on the
-              opposite network, allowing the same amount of tokens to be
-              received without incurring any costs for the minting transaction.
-            </div>
-
-            <div className={styles.balance}>
-              <div>Arbitrum Balance: {arbitrumBalance}</div>
-              <div>Optimism Balance: {optimismBalance}</div>
-
-              {showBanner && (
-                <div
-                  className={`${styles.banner} ${!showBanner ? "hide" : ""}`}
-                >
-                  {/* Show spinner when transaction is in progress */}
-                  {currentTransactionId ? (
-                    <a
-                      href={getEtherscanUrl(chain!.id, currentTransactionId)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={styles.bannerText}
-                    >
-                      {bannerText}
-                    </a>
-                  ) : (
-                    <span className={`${styles.bannerText}`}>{bannerText}</span>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className={styles.swapGrid}>
-              <div>
-                <a
-                  href="#"
-                  className={styles.animatedButton5}
-                  onClick={() => setShowMintModal(true)}
-                >
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                  Admin Mint
-                </a>
-              </div>
-              <div>
-                <a
-                  href="#"
-                  className={styles.animatedButton1}
-                  onClick={() => setShowBurnModal(true)}
-                >
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                  Gassless Burn
-                </a>
-              </div>
-              <MintModal
-                isOpen={showMintModal}
-                onClose={() => setShowMintModal(false)}
-                onTrade={handleMint}
-              />
-              <BurnModal
-                isOpen={showBurnModal}
-                onClose={() => setShowBurnModal(false)}
-                onTrade={handleBurn}
-              />
-            </div>
+        <div>
+          <div className={styles.explenation}>
+            This project demonstrates the process of bridging an ERC20 token
+            between two testnets by leveraging the Gelato Web3 Function,
+            Gelato Relay, and MockERC20 system. By integrating Gelato's tools,
+            the project showcases a practical implementation of cross-chain
+            operations within the Ethereum ecosystem, highlighting the
+            potential for enhanced interoperability and user engagement in
+            decentralized platforms.
           </div>
+
+          <div className={styles.explenationSteps}>
+            To showcase bidirectional bridging between Arbitrum and Optimism,
+            tokens burned on one network will automatically be mirrored on the
+            opposite network, allowing the same amount of tokens to be
+            received without incurring any costs for the minting transaction.
+          </div>
+
+          <div className={styles.balance}>
+            <div>Arbitrum Balance: {arbitrumBalance}</div>
+            <div>Optimism Balance: {optimismBalance}</div>
+
+            {showBanner && (
+              <div
+                className={`${styles.banner} ${!showBanner ? "hide" : ""}`}
+              >
+                {/* Show spinner when transaction is in progress */}
+                {currentTransactionId ? (
+                  <a
+                    href={getEtherscanUrl(chain!.id, currentTransactionId)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.bannerText}
+                  >
+                    {bannerText}
+                  </a>
+                ) : (
+                  <span className={`${styles.bannerText}`}>{bannerText}</span>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className={styles.explenationSteps}>
+            You need some Tokens to test Gasless Burn
+          </div>
+          <div className={styles.swapGrid}>
+            <div>
+              <a
+                href="#"
+                className={styles.animatedButton5}
+                onClick={() => setShowMintModal(true)}
+              >
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                Admin Mint
+              </a>
+            </div>
+            <div>
+              <a
+                href="#"
+                className={styles.animatedButton1}
+                onClick={() => setShowBurnModal(true)}
+              >
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                Gassless Burn
+              </a>
+            </div>
+            <MintModal
+              isOpen={showMintModal}
+              onClose={() => setShowMintModal(false)}
+              onTrade={handleMint}
+            />
+            <BurnModal
+              isOpen={showBurnModal}
+              onClose={() => setShowBurnModal(false)}
+              onTrade={handleBurn}
+            />
+          </div>
+        </div>
       </main>
     </>
   );

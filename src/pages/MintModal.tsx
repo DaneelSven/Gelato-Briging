@@ -34,7 +34,7 @@ const MintModal: React.FC<InputModalProps> = ({ isOpen, onClose, onTrade }) => {
                 <h2 className={styles.modalTitle}>Mint Tokens</h2>
 
                 <div className={styles.errorText}>
-                    Please enter a valid positve amount (1,2 or more).
+                    Please enter a valid positve amount (1-10 or more).
                 </div>
                 <input
                     className={styles.input}

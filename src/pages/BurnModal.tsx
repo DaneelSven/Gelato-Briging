@@ -34,7 +34,7 @@ const BurnModal: React.FC<InputModalProps> = ({ isOpen, onClose, onTrade }) => {
                 <h2 className={styles.modalTitle}>Burn Tokens</h2>
 
                 <div className={styles.errorText}>
-                    Please enter a valid positve amount (0, 1, or 2).
+                Please enter a valid positve amount (1-10 or more).
                 </div>
                 <input
                     className={styles.input}
